@@ -1,6 +1,6 @@
 module dhb
 
-go 1.20.4
+go 1.20
 
 require (
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
