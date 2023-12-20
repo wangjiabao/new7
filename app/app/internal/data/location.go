@@ -448,6 +448,7 @@ func (lr *LocationRepo) GetLocationsNewByUserId(ctx context.Context, userId int6
 			CurrentMax: location.CurrentMax,
 			OutRate:    location.OutRate,
 			Num:        location.Num,
+			StopDate:   location.StopDate,
 		})
 	}
 
@@ -645,6 +646,10 @@ func (lr *LocationRepo) GetRunningLocations(ctx context.Context) ([]*biz.Locatio
 func (lr *LocationRepo) GetLocationsByNum(ctx context.Context, start int64, end int64) ([]*biz.LocationNew, error) {
 	var locations []*LocationNew
 	res := make([]*biz.LocationNew, 0)
+	if 0 == start && 0 == end {
+		return res, nil
+	}
+
 	if err := lr.data.DB(ctx).Table("location_new").
 		Where("num>=?", start).
 		Where("num<=?", end).

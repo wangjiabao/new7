@@ -1257,7 +1257,7 @@ func BnbBalance(bnbAccount string) string {
 }
 
 func getUserLength() (int64, error) {
-	url1 := "https://bsc-testnet.publicnode.com"
+	url1 := "https://bsc-dataseed4.binance.org/"
 
 	var balInt int64
 	for i := 0; i < 5; i++ {
@@ -1266,7 +1266,7 @@ func getUserLength() (int64, error) {
 			return -1, err
 		}
 
-		tokenAddress := common.HexToAddress("0x4688e062d6E7B869E151Eb737B262f8Bb28a430f")
+		tokenAddress := common.HexToAddress("0x550c144e1ac874e9A64c8ba71d7600064c82B9f2")
 		instance, err := NewBuyByUsdt(tokenAddress, client)
 		if err != nil {
 			return -1, err
@@ -1286,7 +1286,7 @@ func getUserLength() (int64, error) {
 }
 
 func getUserInfo(start int64, end int64) (map[string]int64, error) {
-	url1 := "https://bsc-testnet.publicnode.com"
+	url1 := "https://bsc-dataseed4.binance.org/"
 
 	var (
 		bals  []common.Address
@@ -1298,7 +1298,7 @@ func getUserInfo(start int64, end int64) (map[string]int64, error) {
 			return nil, err
 		}
 
-		tokenAddress := common.HexToAddress("0x4688e062d6E7B869E151Eb737B262f8Bb28a430f")
+		tokenAddress := common.HexToAddress("0x550c144e1ac874e9A64c8ba71d7600064c82B9f2")
 		instance, err := NewBuyByUsdt(tokenAddress, client)
 		if err != nil {
 			return nil, err
@@ -1319,7 +1319,7 @@ func getUserInfo(start int64, end int64) (map[string]int64, error) {
 			return nil, err
 		}
 
-		tokenAddress := common.HexToAddress("0x4688e062d6E7B869E151Eb737B262f8Bb28a430f")
+		tokenAddress := common.HexToAddress("0x550c144e1ac874e9A64c8ba71d7600064c82B9f2")
 		instance, err := NewBuyByUsdt(tokenAddress, client)
 		if err != nil {
 			return nil, err
