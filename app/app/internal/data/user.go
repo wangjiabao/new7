@@ -1299,6 +1299,47 @@ func (ub *UserBalanceRepo) UpdateLocationAgain2(ctx context.Context, locations [
 	return nil
 }
 
+// DepositLastNew2 .
+func (ub *UserBalanceRepo) DepositLastNew2(ctx context.Context, userId int64, lastAmount int64) (int64, error) {
+	var (
+		err error
+	)
+	if err = ub.data.DB(ctx).Table("user_balance").
+		Where("user_id=?", userId).
+		Updates(map[string]interface{}{"balance_usdt_2": gorm.Expr("balance_usdt_2 + ?", lastAmount)}).Error; nil != err {
+		return 0, errors.NotFound("user balance err", "user balance not found")
+	}
+
+	var userBalance UserBalance
+	err = ub.data.DB(ctx).Where(&UserBalance{UserId: userId}).Table("user_balance").First(&userBalance).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = userBalance.BalanceUsdt
+	userBalanceRecode.UserId = userBalance.UserId
+	userBalanceRecode.Type = "reward_new_2"
+	userBalanceRecode.Amount = lastAmount
+	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
+	if err != nil {
+		return 0, err
+	}
+	//
+	//var reward Reward
+	//reward.UserId = userBalance.UserId
+	//reward.Amount = lastAmount
+	//reward.BalanceRecordId = userBalanceRecode.ID
+	//reward.Type = "last"          // 本次分红的行为类型
+	//reward.Reason = "last_reward" // 给我分红的理由
+	//err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
+	//if err != nil {
+	//	return 0, err
+	//}
+
+	return userBalanceRecode.ID, nil
+}
+
 // DepositLastNew .
 func (ub *UserBalanceRepo) DepositLastNew(ctx context.Context, userId int64, lastAmount int64) (int64, error) {
 	var (
@@ -1319,7 +1360,7 @@ func (ub *UserBalanceRepo) DepositLastNew(ctx context.Context, userId int64, las
 	var userBalanceRecode UserBalanceRecord
 	userBalanceRecode.Balance = userBalance.BalanceUsdt
 	userBalanceRecode.UserId = userBalance.UserId
-	userBalanceRecode.Type = "reward_new_2"
+	userBalanceRecode.Type = "reward_new"
 	userBalanceRecode.Amount = lastAmount
 	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
 	if err != nil {

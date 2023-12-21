@@ -657,7 +657,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle5(ctx context.Context, ethUserRecor
 						tmpCurrentAmount = locationCurrent
 					}
 
-					_, err = ruc.userBalanceRepo.DepositLastNew(ctx, v.UserId, tmpCurrentAmount) // 充值
+					_, err = ruc.userBalanceRepo.DepositLastNew2(ctx, v.UserId, tmpCurrentAmount) // 充值
 					if nil != err {
 						return err
 					}
