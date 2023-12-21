@@ -67,6 +67,12 @@ service App {
 		};
 	};
 
+	rpc Deposit5 (DepositRequest) returns (DepositReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/deposit_5"
+		};
+	};
+
 	rpc Deposit3 (DepositRequest) returns (DepositReply) {
 		option (google.api.http) = {
 			get: "/api/admin_dhb/deposit_3"

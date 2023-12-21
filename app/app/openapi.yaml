@@ -24,6 +24,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/admin_update_location_new_max:
+        post:
+            tags:
+                - App
+            operationId: App_AdminUpdateLocationNewMax
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminUpdateLocationNewMaxRequest_SendBody'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminUpdateLocationNewMaxReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/all:
         get:
             tags:
@@ -156,6 +180,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/check_admin_user_area:
+        get:
+            tags:
+                - App
+            operationId: App_CheckAdminUserArea
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckAdminUserAreaReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/check_and_insert_locations_recommend_user:
+        get:
+            tags:
+                - App
+            operationId: App_CheckAndInsertLocationsRecommendUser
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckAndInsertLocationsRecommendUserReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/check_and_insert_recommend_area:
         get:
             tags:
@@ -183,13 +243,11 @@ paths:
                 - name: userId
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
                 - name: page
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -251,11 +309,40 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/daily_balance_reward:
+        get:
+            tags:
+                - App
+            operationId: App_AdminDailyBalanceReward
+            parameters:
+                - name: date
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminDailyBalanceRewardReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/daily_fee:
         get:
             tags:
                 - App
             operationId: App_AdminDailyFee
+            parameters:
+                - name: day
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
             responses:
                 "200":
                     description: OK
@@ -269,11 +356,57 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/daily_location_reward:
+        get:
+            tags:
+                - App
+            operationId: App_AdminDailyLocationReward
+            parameters:
+                - name: date
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminDailyLocationRewardReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/daily_location_reward_new:
+        get:
+            tags:
+                - App
+            operationId: App_AdminDailyLocationRewardNew
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminDailyLocationRewardNewReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/daily_recommend_reward:
         get:
             tags:
                 - App
             operationId: App_AdminDailyRecommendReward
+            parameters:
+                - name: day
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -305,6 +438,78 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/deposit_2:
+        get:
+            tags:
+                - App
+            operationId: App_Deposit2
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DepositReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/deposit_3:
+        get:
+            tags:
+                - App
+            operationId: App_Deposit3
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DepositReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/deposit_4:
+        get:
+            tags:
+                - App
+            operationId: App_Deposit4
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DepositReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/deposit_5:
+        get:
+            tags:
+                - App
+            operationId: App_Deposit5
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DepositReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/fee:
         get:
             tags:
@@ -323,6 +528,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/level_update:
+        post:
+            tags:
+                - App
+            operationId: App_AdminAreaLevelUpdate
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminAreaLevelUpdateRequest_SendBody'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminAreaLevelUpdateReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/location_all_list:
         get:
             tags:
@@ -332,8 +561,7 @@ paths:
                 - name: page
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
                 - name: address
                   in: query
                   schema:
@@ -384,8 +612,7 @@ paths:
                 - name: page
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
                 - name: address
                   in: query
                   schema:
@@ -397,6 +624,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AdminLocationListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/lock_system:
+        get:
+            tags:
+                - App
+            operationId: App_LockSystem
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LockSystemReply'
                 default:
                     description: Default error response
                     content:
@@ -440,8 +685,7 @@ paths:
                 - name: page
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -473,6 +717,61 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/password_update:
+        post:
+            tags:
+                - App
+            operationId: App_AdminUserPasswordUpdate
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminPasswordUpdateRequest_SendBody'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminPasswordUpdateReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/record_list:
+        get:
+            tags:
+                - App
+            operationId: App_AdminRecordList
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: string
+                - name: address
+                  in: query
+                  schema:
+                    type: string
+                - name: coinType
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RecordListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/reward_list:
         get:
             tags:
@@ -482,9 +781,12 @@ paths:
                 - name: page
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
                 - name: address
+                  in: query
+                  schema:
+                    type: string
+                - name: reason
                   in: query
                   schema:
                     type: string
@@ -501,6 +803,75 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/trade:
+        get:
+            tags:
+                - App
+            operationId: App_AdminTrade
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminTradeReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/trade_list:
+        get:
+            tags:
+                - App
+            operationId: App_AdminTradeList
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: string
+                - name: address
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminTradeListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/undo_update:
+        post:
+            tags:
+                - App
+            operationId: App_AdminUndoUpdate
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminUndoUpdateRequest_SendBody'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminUndoUpdateReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/user_auth_list:
         get:
             tags:
@@ -510,8 +881,7 @@ paths:
                 - name: adminId
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -534,8 +904,7 @@ paths:
                 - name: page
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
                 - name: address
                   in: query
                   schema:
@@ -547,8 +916,7 @@ paths:
                 - name: vip
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -571,8 +939,11 @@ paths:
                 - name: userId
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
+                - name: address
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -580,6 +951,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AdminUserRecommendReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/vip_check:
+        get:
+            tags:
+                - App
+            operationId: App_VipCheck
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VipCheckReply'
                 default:
                     description: Default error response
                     content:
@@ -652,11 +1041,14 @@ paths:
                 - App
             operationId: App_AdminWithdrawList
             parameters:
+                - name: withDrawType
+                  in: query
+                  schema:
+                    type: string
                 - name: page
                   in: query
                   schema:
-                    type: integer
-                    format: int64
+                    type: string
                 - name: address
                   in: query
                   schema:
@@ -668,6 +1060,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AdminWithdrawListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/withdraw_pass:
+        post:
+            tags:
+                - App
+            operationId: App_AdminWithdrawPass
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminWithdrawPassRequest_SendBody'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminWithdrawPassReply'
                 default:
                     description: Default error response
                     content:
@@ -827,15 +1243,14 @@ components:
             type: object
             properties:
                 todayTotalUser:
-                    type: integer
-                    format: int64
+                    type: string
                 locationCount:
-                    type: integer
-                    format: int64
+                    type: string
                 totalUser:
-                    type: integer
-                    format: int64
+                    type: string
                 allBalance:
+                    type: string
+                allBalanceBtc:
                     type: string
                 todayLocation:
                     type: string
@@ -845,9 +1260,45 @@ components:
                     type: string
                 allWithdraw:
                     type: string
+                totalH:
+                    type: string
+                allBalanceH:
+                    type: string
+                todayWithdrawH:
+                    type: string
+                withdrawH:
+                    type: string
+                totalC:
+                    type: string
+                amountCsd:
+                    type: string
+                amountHbs:
+                    type: string
+                allWithdrawBtc:
+                    type: string
+                todayWithdrawBtc:
+                    type: string
                 allReward:
                     type: string
                 allSystemRewardAndFee:
+                    type: string
+                balanceReward:
+                    type: string
+                balanceRewardRewarded:
+                    type: string
+                userBalanceLockUsdtTotal:
+                    type: string
+                userLocationNewCurrent:
+                    type: string
+        AdminAreaLevelUpdateReply:
+            type: object
+            properties: {}
+        AdminAreaLevelUpdateRequest_SendBody:
+            type: object
+            properties:
+                userId:
+                    type: string
+                level:
                     type: string
         AdminBalanceUpdateReply:
             type: object
@@ -856,8 +1307,7 @@ components:
             type: object
             properties:
                 userId:
-                    type: integer
-                    format: int64
+                    type: string
                 amount:
                     type: string
         AdminChangePasswordReply:
@@ -878,14 +1328,12 @@ components:
                     items:
                         $ref: '#/components/schemas/AdminConfigReply_List'
                 count:
-                    type: integer
-                    format: int64
+                    type: string
         AdminConfigReply_List:
             type: object
             properties:
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 name:
                     type: string
                 value:
@@ -897,8 +1345,7 @@ components:
             type: object
             properties:
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 value:
                     type: string
         AdminCreateAccountReply:
@@ -911,7 +1358,16 @@ components:
                     type: string
                 password:
                     type: string
+        AdminDailyBalanceRewardReply:
+            type: object
+            properties: {}
         AdminDailyFeeReply:
+            type: object
+            properties: {}
+        AdminDailyLocationRewardNewReply:
+            type: object
+            properties: {}
+        AdminDailyLocationRewardReply:
             type: object
             properties: {}
         AdminDailyRecommendRewardReply:
@@ -931,8 +1387,7 @@ components:
             type: object
             properties:
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 account:
                     type: string
         AdminLocationAllListReply:
@@ -943,8 +1398,7 @@ components:
                     items:
                         $ref: '#/components/schemas/AdminLocationAllListReply_LocationList'
                 count:
-                    type: integer
-                    format: int64
+                    type: string
         AdminLocationAllListReply_LocationList:
             type: object
             properties:
@@ -952,17 +1406,10 @@ components:
                     type: string
                 address:
                     type: string
-                row:
-                    type: integer
-                    format: int64
-                col:
-                    type: integer
-                    format: int64
                 status:
                     type: string
                 currentLevel:
-                    type: integer
-                    format: int64
+                    type: string
                 current:
                     type: string
                 currentMax:
@@ -974,11 +1421,9 @@ components:
             type: object
             properties:
                 userId:
-                    type: integer
-                    format: int64
+                    type: string
                 amount:
-                    type: integer
-                    format: int64
+                    type: string
         AdminLocationListReply:
             type: object
             properties:
@@ -987,8 +1432,7 @@ components:
                     items:
                         $ref: '#/components/schemas/AdminLocationListReply_LocationList'
                 count:
-                    type: integer
-                    format: int64
+                    type: string
         AdminLocationListReply_LocationList:
             type: object
             properties:
@@ -996,17 +1440,10 @@ components:
                     type: string
                 address:
                     type: string
-                row:
-                    type: integer
-                    format: int64
-                col:
-                    type: integer
-                    format: int64
                 status:
                     type: string
                 currentLevel:
-                    type: integer
-                    format: int64
+                    type: string
                 current:
                     type: string
                 currentMax:
@@ -1031,8 +1468,7 @@ components:
                     items:
                         $ref: '#/components/schemas/AdminMonthRecommendReply_List'
                 count:
-                    type: integer
-                    format: int64
+                    type: string
         AdminMonthRecommendReply_List:
             type: object
             properties:
@@ -1041,9 +1477,18 @@ components:
                 recommendAddress:
                     type: string
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 createdAt:
+                    type: string
+        AdminPasswordUpdateReply:
+            type: object
+            properties: {}
+        AdminPasswordUpdateRequest_SendBody:
+            type: object
+            properties:
+                userId:
+                    type: string
+                password:
                     type: string
         AdminRewardListReply:
             type: object
@@ -1053,8 +1498,7 @@ components:
                     items:
                         $ref: '#/components/schemas/AdminRewardListReply_List'
                 count:
-                    type: integer
-                    format: int64
+                    type: string
         AdminRewardListReply_List:
             type: object
             properties:
@@ -1062,11 +1506,56 @@ components:
                     type: string
                 amount:
                     type: string
+                amountB:
+                    type: string
                 type:
                     type: string
                 address:
                     type: string
                 reason:
+                    type: string
+        AdminTradeListReply:
+            type: object
+            properties:
+                trades:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AdminTradeListReply_List'
+                count:
+                    type: string
+        AdminTradeListReply_List:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amountCsd:
+                    type: string
+                amountHbs:
+                    type: string
+                address:
+                    type: string
+        AdminTradeReply:
+            type: object
+            properties: {}
+        AdminUndoUpdateReply:
+            type: object
+            properties: {}
+        AdminUndoUpdateRequest_SendBody:
+            type: object
+            properties:
+                userId:
+                    type: string
+                undo:
+                    type: string
+        AdminUpdateLocationNewMaxReply:
+            type: object
+            properties: {}
+        AdminUpdateLocationNewMaxRequest_SendBody:
+            type: object
+            properties:
+                userId:
+                    type: string
+                amount:
                     type: string
         AdminUserListReply:
             type: object
@@ -1076,14 +1565,12 @@ components:
                     items:
                         $ref: '#/components/schemas/AdminUserListReply_UserList'
                 count:
-                    type: integer
-                    format: int64
+                    type: string
         AdminUserListReply_UserList:
             type: object
             properties:
                 userId:
-                    type: integer
-                    format: int64
+                    type: string
                 createdAt:
                     type: string
                 address:
@@ -1092,15 +1579,16 @@ components:
                     type: string
                 balanceDhb:
                     type: string
+                balanceUsdtLock:
+                    type: string
+                balanceDhbLock:
+                    type: string
                 vip:
-                    type: integer
-                    format: int64
-                monthRecommend:
-                    type: integer
-                    format: int64
+                    type: string
                 historyRecommend:
-                    type: integer
-                    format: int64
+                    type: string
+                TeamCsdBalance:
+                    type: string
         AdminUserRecommendReply:
             type: object
             properties:
@@ -1112,14 +1600,18 @@ components:
             type: object
             properties:
                 userId:
-                    type: integer
-                    format: int64
+                    type: string
                 address:
                     type: string
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 createdAt:
+                    type: string
+                amount:
+                    type: string
+                relAmount:
+                    type: string
+                recommendAllAmount:
                     type: string
         AdminVipUpdateReply:
             type: object
@@ -1128,11 +1620,9 @@ components:
             type: object
             properties:
                 userId:
-                    type: integer
-                    format: int64
+                    type: string
                 vip:
-                    type: integer
-                    format: int64
+                    type: string
         AdminWithdrawEthReply:
             type: object
             properties: {}
@@ -1144,16 +1634,14 @@ components:
                     items:
                         $ref: '#/components/schemas/AdminWithdrawListReply_List'
                 count:
-                    type: integer
-                    format: int64
+                    type: string
         AdminWithdrawListReply_List:
             type: object
             properties:
                 address:
                     type: string
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 createdAt:
                     type: string
                 amount:
@@ -1163,6 +1651,14 @@ components:
                 type:
                     type: string
                 status:
+                    type: string
+        AdminWithdrawPassReply:
+            type: object
+            properties: {}
+        AdminWithdrawPassRequest_SendBody:
+            type: object
+            properties:
+                id:
                     type: string
         AdminWithdrawReply:
             type: object
@@ -1174,11 +1670,9 @@ components:
             type: object
             properties:
                 adminId:
-                    type: integer
-                    format: int64
+                    type: string
                 authId:
-                    type: integer
-                    format: int64
+                    type: string
         AuthAdminDeleteReply:
             type: object
             properties: {}
@@ -1186,11 +1680,9 @@ components:
             type: object
             properties:
                 adminId:
-                    type: integer
-                    format: int64
+                    type: string
                 authId:
-                    type: integer
-                    format: int64
+                    type: string
         AuthListReply:
             type: object
             properties:
@@ -1202,12 +1694,17 @@ components:
             type: object
             properties:
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 name:
                     type: string
                 path:
                     type: string
+        CheckAdminUserAreaReply:
+            type: object
+            properties: {}
+        CheckAndInsertLocationsRecommendUserReply:
+            type: object
+            properties: {}
         CheckAndInsertRecommendAreaReply:
             type: object
             properties: {}
@@ -1236,6 +1733,9 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        LockSystemReply:
+            type: object
+            properties: {}
         MyAuthListReply:
             type: object
             properties:
@@ -1244,14 +1744,12 @@ components:
                     items:
                         $ref: '#/components/schemas/MyAuthListReply_List'
                 super:
-                    type: integer
-                    format: int64
+                    type: string
         MyAuthListReply_List:
             type: object
             properties:
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 name:
                     type: string
                 path:
@@ -1287,6 +1785,26 @@ components:
                 type:
                     type: string
                 reason:
+                    type: string
+        RecordListReply:
+            type: object
+            properties:
+                locations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RecordListReply_LocationList'
+                count:
+                    type: string
+        RecordListReply_LocationList:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                address:
+                    type: string
+                amount:
+                    type: string
+                coinType:
                     type: string
         RewardListReply:
             type: object
@@ -1333,8 +1851,7 @@ components:
             type: object
             properties:
                 id:
-                    type: integer
-                    format: int64
+                    type: string
                 name:
                     type: string
                 path:
@@ -1345,8 +1862,7 @@ components:
                 address:
                     type: string
                 level:
-                    type: integer
-                    format: int64
+                    type: string
                 status:
                     type: string
                 amount:
@@ -1360,24 +1876,19 @@ components:
                 inviteUserAddress:
                     type: string
                 recommendNum:
-                    type: integer
-                    format: int64
+                    type: string
                 recommendTeamNum:
-                    type: integer
-                    format: int64
+                    type: string
                 total:
                     type: string
                 feeTotal:
                     type: string
                 row:
-                    type: integer
-                    format: int64
+                    type: string
                 col:
-                    type: integer
-                    format: int64
+                    type: string
                 currentMonthRecommendNum:
-                    type: integer
-                    format: int64
+                    type: string
                 recommendTotal:
                     type: string
                 locationTotal:
@@ -1395,15 +1906,16 @@ components:
                 account:
                     type: string
                 recommendNumAll:
-                    type: integer
-                    format: int64
+                    type: string
                 recommendTeamAll:
-                    type: integer
-                    format: int64
+                    type: string
                 amountB:
                     type: string
                 userCount:
                     type: string
+        VipCheckReply:
+            type: object
+            properties: {}
         WithdrawListReply:
             type: object
             properties:

@@ -1282,6 +1282,23 @@ func (ub *UserBalanceRepo) UpdateLocationAgain(ctx context.Context, locations []
 	return nil
 }
 
+// UpdateLocationAgain2 .
+func (ub *UserBalanceRepo) UpdateLocationAgain2(ctx context.Context, locations []*biz.LocationNew) error {
+	var (
+		err error
+	)
+	for _, vLocations := range locations {
+		res := ub.data.DB(ctx).Table("location_new_2").
+			Where("id=?", vLocations.ID).
+			Updates(map[string]interface{}{"stop_location_again": "1"})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // DepositLastNew .
 func (ub *UserBalanceRepo) DepositLastNew(ctx context.Context, userId int64, lastAmount int64) (int64, error) {
 	var (
@@ -1302,7 +1319,7 @@ func (ub *UserBalanceRepo) DepositLastNew(ctx context.Context, userId int64, las
 	var userBalanceRecode UserBalanceRecord
 	userBalanceRecode.Balance = userBalance.BalanceUsdt
 	userBalanceRecode.UserId = userBalance.UserId
-	userBalanceRecode.Type = "reward_new"
+	userBalanceRecode.Type = "reward_new_2"
 	userBalanceRecode.Amount = lastAmount
 	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
 	if err != nil {
@@ -2543,7 +2560,7 @@ func (ub *UserBalanceRepo) NewNormalRecommendReward(ctx context.Context, userId 
 //}
 
 // NormalRecommendReward .
-func (ub *UserBalanceRepo) NormalRecommendReward(ctx context.Context, userId int64, rewardAmount int64, rewardAmount2 int64, locationId int64, status string, status2 string, type1 string) (int64, error) {
+func (ub *UserBalanceRepo) NormalRecommendReward(ctx context.Context, userId int64, rewardAmount int64, rewardAmount2 int64, locationId int64, status string, status2 string, type1 string, reason string) (int64, error) {
 	var err error
 	if "running" == status {
 		amount := rewardAmount
@@ -2578,7 +2595,48 @@ func (ub *UserBalanceRepo) NormalRecommendReward(ctx context.Context, userId int
 	reward.UserId = userBalance.UserId
 	reward.Amount = rewardAmount
 	reward.BalanceRecordId = userBalanceRecode.ID
-	reward.Type = "location" // 本次分红的行为类型
+	reward.Type = reason // 本次分红的行为类型
+	reward.TypeRecordId = locationId
+	reward.Reason = type1 // 给我分红的理由
+	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return userBalanceRecode.ID, nil
+}
+
+// NormalRecommendReward2 .
+func (ub *UserBalanceRepo) NormalRecommendReward2(ctx context.Context, userId int64, rewardAmount int64, locationId int64, type1 string, reason string) (int64, error) {
+	var err error
+
+	if err = ub.data.DB(ctx).Table("user_balance").
+		Where("user_id=?", userId).
+		Updates(map[string]interface{}{"balance_dhb": gorm.Expr("balance_dhb + ?", rewardAmount)}).Error; nil != err {
+		return 0, errors.NotFound("user balance err", "user balance not found")
+	}
+
+	var userBalance UserBalance
+	err = ub.data.DB(ctx).Where(&UserBalance{UserId: userId}).Table("user_balance").First(&userBalance).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = userBalance.BalanceDhb
+	userBalanceRecode.UserId = userBalance.UserId
+	userBalanceRecode.Type = "reward_token"
+	userBalanceRecode.Amount = rewardAmount
+	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var reward Reward
+	reward.UserId = userBalance.UserId
+	reward.Amount = rewardAmount
+	reward.BalanceRecordId = userBalanceRecode.ID
+	reward.Type = reason // 本次分红的行为类型
 	reward.TypeRecordId = locationId
 	reward.Reason = type1 // 给我分红的理由
 	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error

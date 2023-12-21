@@ -84,6 +84,43 @@ func (lr *LocationRepo) CreateLocation(ctx context.Context, rel *biz.Location) (
 	}, nil
 }
 
+// CreateLocation2New .
+func (lr *LocationRepo) CreateLocation2New(ctx context.Context, rel *biz.LocationNew, amount int64) (*biz.LocationNew, error) {
+	var location LocationNew
+	location.Status = rel.Status
+	location.Num = rel.Num
+	location.Current = rel.Current
+	location.CurrentMax = rel.CurrentMax
+	location.UserId = rel.UserId
+	location.OutRate = rel.OutRate
+	location.StopDate = rel.StopDate
+	location.Usdt = amount
+	res := lr.data.DB(ctx).Table("location_new_2").Create(&location)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_LOCATION_ERROR", "占位信息创建失败")
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = 0
+	userBalanceRecode.UserId = rel.UserId
+	userBalanceRecode.Type = "deposit_2"
+	userBalanceRecode.CoinType = "usdt"
+	userBalanceRecode.Amount = amount
+	res = lr.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_LOCATION_ERROR", "占位信息创建失败")
+	}
+
+	return &biz.LocationNew{
+		ID:         location.ID,
+		UserId:     location.UserId,
+		Status:     location.Status,
+		Current:    location.Current,
+		CurrentMax: location.CurrentMax,
+		Num:        location.Num,
+	}, nil
+}
+
 // CreateLocationNew .
 func (lr *LocationRepo) CreateLocationNew(ctx context.Context, rel *biz.LocationNew, amount int64) (*biz.LocationNew, error) {
 	var location LocationNew
@@ -283,6 +320,39 @@ func (lr *LocationRepo) GetMyStopLocationsLast(ctx context.Context, userId int64
 	return res, nil
 }
 
+// GetMyStopLocations2Last .
+func (lr *LocationRepo) GetMyStopLocations2Last(ctx context.Context, userId int64) ([]*biz.LocationNew, error) {
+
+	var locations []*LocationNew
+	res := make([]*biz.LocationNew, 0)
+	if err := lr.data.db.Table("location_new_2").
+		Where("user_id", userId).
+		Where("status=?", "stop").
+		Where("stop_location_again", 0).
+		Order("id desc").Find(&locations).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	for _, location := range locations {
+		res = append(res, &biz.LocationNew{
+			ID:                location.ID,
+			UserId:            location.UserId,
+			Status:            location.Status,
+			Current:           location.Current,
+			CurrentMax:        location.CurrentMax,
+			StopDate:          location.StopDate,
+			StopLocationAgain: location.StopLocationAgain,
+			StopCoin:          location.StopCoin,
+		})
+	}
+
+	return res, nil
+}
+
 // GetMyLocationRunningLast .
 func (lr *LocationRepo) GetMyLocationRunningLast(ctx context.Context, userId int64) (*biz.Location, error) {
 	var location Location
@@ -455,6 +525,36 @@ func (lr *LocationRepo) GetLocationsNewByUserId(ctx context.Context, userId int6
 	return res, nil
 }
 
+// GetLocationsNew2ByUserId .
+func (lr *LocationRepo) GetLocationsNew2ByUserId(ctx context.Context, userId int64) ([]*biz.LocationNew, error) {
+	var locations []*LocationNew
+	res := make([]*biz.LocationNew, 0)
+	if err := lr.data.DB(ctx).Table("location_new_2").
+		Where("user_id=?", userId).
+		Order("id desc").Find(&locations).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	for _, location := range locations {
+		res = append(res, &biz.LocationNew{
+			ID:         location.ID,
+			UserId:     location.UserId,
+			Status:     location.Status,
+			Current:    location.Current,
+			CurrentMax: location.CurrentMax,
+			OutRate:    location.OutRate,
+			Num:        location.Num,
+			StopDate:   location.StopDate,
+		})
+	}
+
+	return res, nil
+}
+
 // GetLocationsStopNotUpdate .
 func (lr *LocationRepo) GetLocationsStopNotUpdate(ctx context.Context) ([]*biz.Location, error) {
 	var locations []*Location
@@ -589,6 +689,29 @@ func (lr *LocationRepo) UpdateLocationNew(ctx context.Context, id int64, status 
 		}
 	} else {
 		res := lr.data.DB(ctx).Table("location_new").
+			Where("id=?", id).
+			Where("status=?", "running").
+			Updates(map[string]interface{}{"current": gorm.Expr("current + ?", current), "status": status})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return res.Error
+		}
+	}
+
+	return nil
+}
+
+// UpdateLocationNew2 .
+func (lr *LocationRepo) UpdateLocationNew2(ctx context.Context, id int64, status string, current int64, stopDate time.Time) error {
+
+	if "stop" == status {
+		res := lr.data.DB(ctx).Table("location_new_2").
+			Where("id=?", id).
+			Updates(map[string]interface{}{"current": gorm.Expr("current + ?", current), "status": "stop", "stop_date": stopDate})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return res.Error
+		}
+	} else {
+		res := lr.data.DB(ctx).Table("location_new_2").
 			Where("id=?", id).
 			Where("status=?", "running").
 			Updates(map[string]interface{}{"current": gorm.Expr("current + ?", current), "status": status})

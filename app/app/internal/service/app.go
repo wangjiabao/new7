@@ -88,7 +88,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			continue
 		}
 
-		userLength, err = getUserLength()
+		userLength, err = getUserLength("0xF285Ff3699B5D16C5E356059589366e9357f3bc0")
 		if nil != err {
 			fmt.Println(err)
 		}
@@ -105,7 +105,125 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			break
 		}
 
-		depositUsdtResult, err = getUserInfo(last, userLength-1)
+		depositUsdtResult, err = getUserInfo(last, userLength-1, "0xF285Ff3699B5D16C5E356059589366e9357f3bc0")
+		if nil != err {
+			break
+		}
+
+		now := time.Now().UTC()
+		fmt.Println(now, end)
+		if end.Before(now) {
+			break
+		}
+
+		if 0 >= len(depositUsdtResult) {
+			break
+		}
+
+		for user, _ := range depositUsdtResult {
+			fromAccount = append(fromAccount, user)
+		}
+
+		depositUsers, err = a.uuc.GetUserByAddress(ctx, fromAccount...)
+		if nil != depositUsers {
+			// 统计开始
+			notExistDepositResult = make([]*biz.EthUserRecord, 0)
+			for user, amount := range depositUsdtResult { // 主查usdt
+				if _, ok := depositUsers[user]; !ok { // 用户不存在
+					continue
+				}
+				var (
+					tmpValue int64
+					strValue string
+				)
+
+				if 1 == amount {
+					tmpValue = 1000000000000
+					strValue = "100000000000000000000"
+				} else {
+					continue
+				}
+
+				notExistDepositResult = append(notExistDepositResult, &biz.EthUserRecord{ // 两种币的记录
+					UserId:    depositUsers[user].ID,
+					Status:    "success",
+					Type:      "deposit",
+					Amount:    strValue,
+					RelAmount: tmpValue,
+					CoinType:  "USDT",
+					Last:      userLength,
+				})
+			}
+
+			_, err = a.ruc.EthUserRecordHandle(ctx, notExistDepositResult...)
+			if nil != err {
+				fmt.Println(err)
+			}
+		}
+	}
+
+	return &v1.DepositReply{}, nil
+}
+
+// Deposit5 deposit5.
+func (a *AppService) Deposit5(ctx context.Context, req *v1.DepositRequest) (*v1.DepositReply, error) {
+
+	var (
+		depositUsdtResult     map[string]int64
+		notExistDepositResult []*biz.EthUserRecord
+		depositUsers          map[string]*biz.User
+		fromAccount           []string
+		userLength            int64
+		last                  int64
+		err                   error
+	)
+
+	end := time.Now().UTC().Add(50 * time.Second)
+
+	// 配置
+	//configs, err = a.uuc.GetDhbConfig(ctx)
+	//if nil != configs {
+	//	for _, vConfig := range configs {
+	//		if "level1Dhb" == vConfig.KeyName {
+	//			level1Dhb = vConfig.Value + "0000000000000000"
+	//		} else if "level2Dhb" == vConfig.KeyName {
+	//			level2Dhb = vConfig.Value + "0000000000000000"
+	//		} else if "level3Dhb" == vConfig.KeyName {
+	//			level3Dhb = vConfig.Value + "0000000000000000"
+	//		}
+	//	}
+	//}
+
+	for i := 1; i <= 1; i++ {
+		last, err = a.ruc.GetEthUserRecordLast2(ctx)
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+
+		if -1 == last {
+			fmt.Println(err)
+			continue
+		}
+
+		userLength, err = getUserLength("0xaCe8FD41D2C65C117d4CF7e13Ce63a6C8da4022e")
+		if nil != err {
+			fmt.Println(err)
+		}
+
+		if -1 == userLength {
+			continue
+		}
+
+		if 0 == userLength {
+			break
+		}
+
+		if last >= userLength {
+			break
+		}
+
+		depositUsdtResult, err = getUserInfo(last, userLength-1, "0xaCe8FD41D2C65C117d4CF7e13Ce63a6C8da4022e")
 		if nil != err {
 			break
 		}
@@ -151,15 +269,15 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 				notExistDepositResult = append(notExistDepositResult, &biz.EthUserRecord{ // 两种币的记录
 					UserId:    depositUsers[user].ID,
 					Status:    "success",
-					Type:      "deposit",
+					Type:      "deposit_2",
 					Amount:    strValue,
 					RelAmount: tmpValue,
-					CoinType:  "USDT",
+					CoinType:  "USDT_2",
 					Last:      userLength,
 				})
 			}
 
-			_, err = a.ruc.EthUserRecordHandle(ctx, notExistDepositResult...)
+			_, err = a.ruc.EthUserRecordHandle5(ctx, notExistDepositResult...)
 			if nil != err {
 				fmt.Println(err)
 			}
@@ -1256,7 +1374,7 @@ func BnbBalance(bnbAccount string) string {
 	return balance.String()
 }
 
-func getUserLength() (int64, error) {
+func getUserLength(address string) (int64, error) {
 	url1 := "https://bsc-dataseed4.binance.org/"
 
 	var balInt int64
@@ -1266,7 +1384,7 @@ func getUserLength() (int64, error) {
 			return -1, err
 		}
 
-		tokenAddress := common.HexToAddress("0x550c144e1ac874e9A64c8ba71d7600064c82B9f2")
+		tokenAddress := common.HexToAddress(address)
 		instance, err := NewBuyByUsdt(tokenAddress, client)
 		if err != nil {
 			return -1, err
@@ -1285,7 +1403,7 @@ func getUserLength() (int64, error) {
 	return balInt, nil
 }
 
-func getUserInfo(start int64, end int64) (map[string]int64, error) {
+func getUserInfo(start int64, end int64, address string) (map[string]int64, error) {
 	url1 := "https://bsc-dataseed4.binance.org/"
 
 	var (
@@ -1298,7 +1416,7 @@ func getUserInfo(start int64, end int64) (map[string]int64, error) {
 			return nil, err
 		}
 
-		tokenAddress := common.HexToAddress("0x550c144e1ac874e9A64c8ba71d7600064c82B9f2")
+		tokenAddress := common.HexToAddress(address)
 		instance, err := NewBuyByUsdt(tokenAddress, client)
 		if err != nil {
 			return nil, err
@@ -1319,7 +1437,7 @@ func getUserInfo(start int64, end int64) (map[string]int64, error) {
 			return nil, err
 		}
 
-		tokenAddress := common.HexToAddress("0x550c144e1ac874e9A64c8ba71d7600064c82B9f2")
+		tokenAddress := common.HexToAddress(address)
 		instance, err := NewBuyByUsdt(tokenAddress, client)
 		if err != nil {
 			return nil, err
