@@ -1306,7 +1306,7 @@ func (ub *UserBalanceRepo) DepositLastNew2(ctx context.Context, userId int64, la
 	)
 	if err = ub.data.DB(ctx).Table("user_balance").
 		Where("user_id=?", userId).
-		Updates(map[string]interface{}{"balance_usdt_2": gorm.Expr("balance_usdt_2 + ?", lastAmount)}).Error; nil != err {
+		Updates(map[string]interface{}{"balance_usdt_new": gorm.Expr("balance_usdt_new + ?", lastAmount)}).Error; nil != err {
 		return 0, errors.NotFound("user balance err", "user balance not found")
 	}
 
