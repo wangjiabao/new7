@@ -164,7 +164,6 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 
 	var (
 		configs       []*Config
-		num           = int64(1)
 		timeAgain     int64
 		recommendRate int64
 		num1          int64
@@ -241,7 +240,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			}
 		}
 
-		locationCurrentMax = v.RelAmount * num
+		locationCurrentMax = v.RelAmount * 25 / 10
 
 		// 推荐人
 		userRecommend, err = ruc.userRecommendRepo.GetUserRecommendByUserId(ctx, v.UserId)
@@ -494,7 +493,6 @@ func (ruc *RecordUseCase) EthUserRecordHandle5(ctx context.Context, ethUserRecor
 
 	var (
 		configs       []*Config
-		num           int64
 		timeAgain     int64
 		recommendRate int64
 	)
@@ -507,9 +505,10 @@ func (ruc *RecordUseCase) EthUserRecordHandle5(ctx context.Context, ethUserRecor
 				recommendRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			} else if "time_again" == vConfig.KeyName {
 				timeAgain, _ = strconv.ParseInt(vConfig.Value, 10, 64)
-			} else if "num" == vConfig.KeyName {
-				num, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
+			//else if "num" == vConfig.KeyName {
+			//	num, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//}
 		}
 	}
 
@@ -547,7 +546,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle5(ctx context.Context, ethUserRecor
 			}
 		}
 
-		locationCurrentMax = v.RelAmount * num
+		locationCurrentMax = v.RelAmount * 25 / 10
 
 		// 推荐人
 		userRecommend, err = ruc.userRecommendRepo.GetUserRecommendByUserId(ctx, v.UserId)
