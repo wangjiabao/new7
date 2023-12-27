@@ -101,6 +101,7 @@ type LocationRepo interface {
 	GetLocationByIds(ctx context.Context, userIds ...int64) ([]*LocationNew, error)
 	GetAllLocations(ctx context.Context) ([]*Location, error)
 	GetAllLocationsNew(ctx context.Context) ([]*LocationNew, error)
+	GetAllLocationsNew2(ctx context.Context) ([]*LocationNew, error)
 	GetLocationsByUserIds(ctx context.Context, userIds []int64) ([]*Location, error)
 
 	CreateLocation2New(ctx context.Context, rel *LocationNew, amount int64) (*LocationNew, error)

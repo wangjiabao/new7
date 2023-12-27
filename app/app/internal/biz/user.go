@@ -196,6 +196,7 @@ type UserBalanceRepo interface {
 	NormalRecommendReward(ctx context.Context, userId int64, rewardAmount int64, rewardAmount2 int64, locationId int64, status string, status2 string, type1 string, reason string) (int64, error)
 	NewNormalRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64, tmpRecommendUserIdsInt []int64) (int64, error)
 	NormalRecommendReward2(ctx context.Context, userId int64, rewardAmount int64, locationId int64, type1 string, reason string) (int64, error)
+	NormalReward3(ctx context.Context, userId int64, rewardAmount int64, rewardAmount2 int64, locationId int64, status string, status2 string) (int64, error)
 	NormalRecommendTopReward(ctx context.Context, userId int64, amount int64, locationId int64, reasonId int64, status string) (int64, error)
 	NormalWithdrawRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64, status string) (int64, error)
 	NormalWithdrawRecommendTopReward(ctx context.Context, userId int64, amount int64, locationId int64, reasonId int64, status string) (int64, error)
@@ -232,6 +233,7 @@ type UserBalanceRepo interface {
 	GetUserBalanceRecordCsdTotal(ctx context.Context) (int64, error)
 	GetUserBalanceRecordHbsTotal(ctx context.Context) (int64, error)
 	GetUserBalanceRecordUsdtTotalToday(ctx context.Context) (int64, error)
+	GetSystemWithdrawUsdtFeeTotalToday(ctx context.Context) (int64, error)
 	GetUserWithdrawUsdtTotalToday(ctx context.Context) (int64, error)
 	GetUserWithdrawDhbTotalToday(ctx context.Context) (int64, error)
 	GetUserWithdrawUsdtTotal(ctx context.Context) (int64, error)
@@ -2370,55 +2372,200 @@ func (uuc *UserUseCase) AdminUpdateLocationNewMax(ctx context.Context, req *v1.A
 
 func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1.AdminDailyLocationRewardNewRequest) (*v1.AdminDailyLocationRewardNewReply, error) {
 	var (
-		userLocations     []*LocationNew
-		configs           []*Config
-		locationDailyRate int64
-		err               error
+		userLocations    []*LocationNew
+		userLocationsMap map[int64]*LocationNew
+		userLocations1   []*LocationNew
+		userLocations2   []*LocationNew
+		userLocations3   []*LocationNew
+		v1r              int64
+		v2r              int64
+		v3r              int64
+		configs          []*Config
+		amount           int64
+		amountV1         int64
+		amountV2         int64
+		amountV3         int64
+		v1Count          int64
+		v2Count          int64
+		v3Count          int64
+		err              error
 	)
+
 	configs, _ = uuc.configRepo.GetConfigByKeys(ctx,
-		"locations_daily_rate",
+		"v1", "v2", "v3",
 	)
 
 	if nil != configs {
 		for _, vConfig := range configs {
-			if "locations_daily_rate" == vConfig.KeyName {
-				locationDailyRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			if "v1" == vConfig.KeyName {
+				v1r, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "v2" == vConfig.KeyName {
+				v2r, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "v3" == vConfig.KeyName {
+				v3r, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 		}
 	}
 
-	userLocations, err = uuc.locationRepo.GetAllLocationsNew(ctx)
+	amount, err = uuc.ubRepo.GetSystemWithdrawUsdtFeeTotalToday(ctx)
 	if nil != err {
 		return &v1.AdminDailyLocationRewardNewReply{}, nil
 	}
 
+	userLocations, err = uuc.locationRepo.GetAllLocationsNew2(ctx)
+	if nil != err {
+		return &v1.AdminDailyLocationRewardNewReply{}, nil
+	}
+
+	userLocationsMap = make(map[int64]*LocationNew, 0)
+	userLocations3 = make([]*LocationNew, 0)
+	userLocations2 = make([]*LocationNew, 0)
+	userLocations1 = make([]*LocationNew, 0)
 	for _, vUserLocations := range userLocations {
-		if vUserLocations.CurrentMax+vUserLocations.CurrentMaxNew <= vUserLocations.Current {
+
+		if _, ok := userLocationsMap[vUserLocations.UserId]; ok {
 			continue
 		}
 
-		var userRecommend *UserRecommend
-		userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, vUserLocations.UserId)
-		if nil == userRecommend {
+		var (
+			userInfo *UserInfo
+		)
+
+		userLocationsMap[vUserLocations.UserId] = vUserLocations
+
+		userInfo, err = uuc.uiRepo.GetUserInfoByUserId(ctx, vUserLocations.UserId)
+		if nil != err {
 			continue
 		}
 
-		tmp := (vUserLocations.CurrentMax + vUserLocations.CurrentMaxNew) * locationDailyRate / 1000
-		if tmp+vUserLocations.Current > vUserLocations.CurrentMax+vUserLocations.CurrentMaxNew {
-			tmp = vUserLocations.CurrentMax + vUserLocations.CurrentMaxNew - vUserLocations.Current
+		if 3 == userInfo.Vip {
+			v3Count += 1
+			userLocations3 = append(userLocations3, vUserLocations)
 		}
+
+		if 2 == userInfo.Vip {
+			v2Count += 1
+			userLocations2 = append(userLocations2, vUserLocations)
+		}
+
+		if 1 == userInfo.Vip {
+			v1Count += 1
+			userLocations1 = append(userLocations1, vUserLocations)
+		}
+	}
+
+	amountV1 = amount * v1r / 100 / v1Count
+	amountV2 = amount * v2r / 100 / v2Count
+	amountV3 = amount * v3r / 100 / v3Count
+
+	for _, vUserLocations1 := range userLocations1 {
 
 		if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
-			err = uuc.locationRepo.UpdateLocationNewCurrent(ctx, vUserLocations.ID, tmp)
-			if nil != err {
-				return err
+			tmpStatus := vUserLocations1.Status // 现在还在运行中
+
+			// 奖励usdt
+			tmpRewardAmount := amountV1
+
+			vUserLocations1.Status = "running"
+			vUserLocations1.Current += tmpRewardAmount
+
+			tmpRewardAmount2 := tmpRewardAmount
+			if vUserLocations1.Current >= vUserLocations1.CurrentMax { // 占位分红人分满停止
+				vUserLocations1.Status = "stop"
+				if "running" == tmpStatus {
+					vUserLocations1.StopDate = time.Now().UTC().Add(8 * time.Hour)
+					tmpRewardAmount2 = tmpRewardAmount - (vUserLocations1.Current - vUserLocations1.CurrentMax)
+				} else {
+					tmpRewardAmount2 = 0
+				}
 			}
 
-			_, err = uuc.ubRepo.LocationNewDailyReward(ctx, vUserLocations.UserId, tmp, vUserLocations.ID)
-			if nil != err {
-				return err
+			if 0 < tmpRewardAmount {
+				err = uuc.locationRepo.UpdateLocationNew2(ctx, vUserLocations1.ID, vUserLocations1.Status, tmpRewardAmount, vUserLocations1.StopDate) // 分红占位数据修改
+				if nil != err {
+					return err
+				}
+				_, err = uuc.ubRepo.NormalReward3(ctx, vUserLocations1.UserId, tmpRewardAmount, tmpRewardAmount2, vUserLocations1.ID, tmpStatus, vUserLocations1.Status) // 直推人奖励
+				if nil != err {
+					return err
+				}
+			}
+			return nil
+		}); nil != err {
+			continue
+		}
+	}
+
+	for _, vUserLocations3 := range userLocations3 {
+
+		if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+			tmpStatus := vUserLocations3.Status // 现在还在运行中
+
+			// 奖励usdt
+			tmpRewardAmount := amountV3
+
+			vUserLocations3.Status = "running"
+			vUserLocations3.Current += tmpRewardAmount
+
+			tmpRewardAmount2 := tmpRewardAmount
+			if vUserLocations3.Current >= vUserLocations3.CurrentMax { // 占位分红人分满停止
+				vUserLocations3.Status = "stop"
+				if "running" == tmpStatus {
+					vUserLocations3.StopDate = time.Now().UTC().Add(8 * time.Hour)
+					tmpRewardAmount2 = tmpRewardAmount - (vUserLocations3.Current - vUserLocations3.CurrentMax)
+				} else {
+					tmpRewardAmount2 = 0
+				}
 			}
 
+			if 0 < tmpRewardAmount {
+				err = uuc.locationRepo.UpdateLocationNew2(ctx, vUserLocations3.ID, vUserLocations3.Status, tmpRewardAmount, vUserLocations3.StopDate) // 分红占位数据修改
+				if nil != err {
+					return err
+				}
+				_, err = uuc.ubRepo.NormalReward3(ctx, vUserLocations3.UserId, tmpRewardAmount, tmpRewardAmount2, vUserLocations3.ID, tmpStatus, vUserLocations3.Status) // 直推人奖励
+				if nil != err {
+					return err
+				}
+			}
+			return nil
+		}); nil != err {
+			continue
+		}
+	}
+
+	for _, vUserLocations2 := range userLocations2 {
+
+		if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+			tmpStatus := vUserLocations2.Status // 现在还在运行中
+
+			// 奖励usdt
+			tmpRewardAmount := amountV2
+
+			vUserLocations2.Status = "running"
+			vUserLocations2.Current += tmpRewardAmount
+
+			tmpRewardAmount2 := tmpRewardAmount
+			if vUserLocations2.Current >= vUserLocations2.CurrentMax { // 占位分红人分满停止
+				vUserLocations2.Status = "stop"
+				if "running" == tmpStatus {
+					vUserLocations2.StopDate = time.Now().UTC().Add(8 * time.Hour)
+					tmpRewardAmount2 = tmpRewardAmount - (vUserLocations2.Current - vUserLocations2.CurrentMax)
+				} else {
+					tmpRewardAmount2 = 0
+				}
+			}
+
+			if 0 < tmpRewardAmount {
+				err = uuc.locationRepo.UpdateLocationNew2(ctx, vUserLocations2.ID, vUserLocations2.Status, tmpRewardAmount, vUserLocations2.StopDate) // 分红占位数据修改
+				if nil != err {
+					return err
+				}
+				_, err = uuc.ubRepo.NormalReward3(ctx, vUserLocations2.UserId, tmpRewardAmount, tmpRewardAmount2, vUserLocations2.ID, tmpStatus, vUserLocations2.Status) // 直推人奖励
+				if nil != err {
+					return err
+				}
+			}
 			return nil
 		}); nil != err {
 			continue

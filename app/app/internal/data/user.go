@@ -67,12 +67,13 @@ type Config struct {
 }
 
 type UserBalance struct {
-	ID          int64     `gorm:"primarykey;type:int"`
-	UserId      int64     `gorm:"type:int"`
-	BalanceUsdt int64     `gorm:"type:bigint"`
-	BalanceDhb  int64     `gorm:"type:bigint"`
-	CreatedAt   time.Time `gorm:"type:datetime;not null"`
-	UpdatedAt   time.Time `gorm:"type:datetime;not null"`
+	ID             int64     `gorm:"primarykey;type:int"`
+	UserId         int64     `gorm:"type:int"`
+	BalanceUsdt    int64     `gorm:"type:bigint"`
+	BalanceUsdtNew int64     `gorm:"type:bigint"`
+	BalanceDhb     int64     `gorm:"type:bigint"`
+	CreatedAt      time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt      time.Time `gorm:"type:datetime;not null"`
 }
 
 type UserRecommendArea struct {
@@ -2647,6 +2648,54 @@ func (ub *UserBalanceRepo) NormalRecommendReward(ctx context.Context, userId int
 	return userBalanceRecode.ID, nil
 }
 
+// NormalReward3 .
+func (ub *UserBalanceRepo) NormalReward3(ctx context.Context, userId int64, rewardAmount int64, rewardAmount2 int64, locationId int64, status string, status2 string) (int64, error) {
+	var err error
+
+	if "running" == status {
+		amount := rewardAmount
+		if "stop" == status2 {
+			amount = rewardAmount2
+		}
+
+		if err = ub.data.DB(ctx).Table("user_balance").
+			Where("user_id=?", userId).
+			Updates(map[string]interface{}{"balance_usdt_new": gorm.Expr("balance_usdt_new + ?", amount)}).Error; nil != err {
+			return 0, errors.NotFound("user balance err", "user balance not found")
+		}
+	}
+
+	var userBalance UserBalance
+	err = ub.data.DB(ctx).Where(&UserBalance{UserId: userId}).Table("user_balance").First(&userBalance).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = userBalance.BalanceUsdtNew
+	userBalanceRecode.UserId = userBalance.UserId
+	userBalanceRecode.Type = "reward_withdraw"
+	userBalanceRecode.Amount = rewardAmount
+	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var reward Reward
+	reward.UserId = userBalance.UserId
+	reward.Amount = rewardAmount
+	reward.BalanceRecordId = userBalanceRecode.ID
+	reward.Type = "reward_withdraw" // 本次分红的行为类型
+	reward.TypeRecordId = locationId
+	reward.Reason = "reward_withdraw" // 给我分红的理由
+	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return userBalanceRecode.ID, nil
+}
+
 // NormalRecommendReward2 .
 func (ub *UserBalanceRepo) NormalRecommendReward2(ctx context.Context, userId int64, rewardAmount int64, locationId int64, type1 string, reason string) (int64, error) {
 	var err error
@@ -3592,6 +3641,37 @@ func (ub UserBalanceRepo) GetUserBalanceRecordUsdtTotalToday(ctx context.Context
 	if err := ub.data.db.Table("user_balance_record").
 		Where("type=?", "deposit").
 		Where("coin_type=?", "usdt").
+		Where("created_at>=?", todayStart).Where("created_at<?", todayEnd).
+		Select("sum(amount) as total").Take(&total).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return total.Total, errors.NotFound("USER_BALANCE_RECORD_NOT_FOUND", "user balance not found")
+		}
+
+		return total.Total, errors.New(500, "USER BALANCE RECORD ERROR", err.Error())
+	}
+
+	return total.Total, nil
+}
+
+// GetSystemWithdrawUsdtFeeTotalToday .
+func (ub UserBalanceRepo) GetSystemWithdrawUsdtFeeTotalToday(ctx context.Context) (int64, error) {
+	var total UserBalanceTotal
+	now := time.Now().UTC()
+	var startDate time.Time
+	var endDate time.Time
+	if 16 <= now.Hour() {
+		startDate = now
+		endDate = now.AddDate(0, 0, 1)
+	} else {
+		startDate = now.AddDate(0, 0, -1)
+		endDate = now
+	}
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
+	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
+
+	if err := ub.data.db.Table("user_balance_record").
+		Where("user_id=?", 999999999).
+		Where("type=?", "withdraw").
 		Where("created_at>=?", todayStart).Where("created_at<?", todayEnd).
 		Select("sum(amount) as total").Take(&total).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
