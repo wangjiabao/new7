@@ -2454,9 +2454,17 @@ func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1
 		}
 	}
 
-	amountV1 = amount * v1r / 100 / v1Count
-	amountV2 = amount * v2r / 100 / v2Count
-	amountV3 = amount * v3r / 100 / v3Count
+	if v1Count > 0 {
+		amountV1 = amount * v1r / 100 / v1Count
+	}
+	
+	if v2Count > 0 {
+		amountV2 = amount * v2r / 100 / v2Count
+	}
+
+	if v3Count > 0 {
+		amountV3 = amount * v3r / 100 / v3Count
+	}
 
 	for _, vUserLocations1 := range userLocations1 {
 
