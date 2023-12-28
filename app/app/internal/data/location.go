@@ -485,6 +485,8 @@ func (lr *LocationRepo) GetAllLocationsNew2(ctx context.Context) ([]*biz.Locatio
 			Current:       location.Current,
 			CurrentMax:    location.CurrentMax,
 			CurrentMaxNew: location.CurrentMaxNew,
+			Status:        location.Status,
+			StopDate:      location.StopDate,
 		})
 	}
 
