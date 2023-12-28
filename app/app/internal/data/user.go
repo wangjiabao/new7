@@ -3669,9 +3669,10 @@ func (ub UserBalanceRepo) GetSystemWithdrawUsdtFeeTotalToday(ctx context.Context
 	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
 	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
 
-	if err := ub.data.db.Table("user_balance_record").
+	if err := ub.data.db.Table("reward").
 		Where("user_id=?", 999999999).
 		Where("type=?", "withdraw").
+		Where("reason=?", "system_reward").
 		Where("created_at>=?", todayStart).Where("created_at<?", todayEnd).
 		Select("sum(amount) as total").Take(&total).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

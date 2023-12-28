@@ -1310,7 +1310,7 @@ func toToken(userPrivateKey string, toAccount string, withdrawAmount string, wit
 	//	return "", err
 	//}
 
-	authUser, err = bind.NewKeyedTransactorWithChainID(privateKey, new(big.Int).SetInt64(314))
+	authUser, err = bind.NewKeyedTransactorWithChainID(privateKey, new(big.Int).SetInt64(56))
 	if err != nil {
 		fmt.Println(err)
 		return "", err
