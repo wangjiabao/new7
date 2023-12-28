@@ -525,13 +525,12 @@ func (uuc *UserUseCase) AdminTradeList(ctx context.Context, req *v1.AdminTradeLi
 
 func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserListRequest) (*v1.AdminUserListReply, error) {
 	var (
-		users            []*User
-		userIds          []int64
-		userBalances     map[int64]*UserBalance
-		userBalancesLock map[int64]*UserBalance
-		userInfos        map[int64]*UserInfo
-		count            int64
-		err              error
+		users        []*User
+		userIds      []int64
+		userBalances map[int64]*UserBalance
+		userInfos    map[int64]*UserInfo
+		count        int64
+		err          error
 	)
 
 	res := &v1.AdminUserListReply{
@@ -552,11 +551,6 @@ func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserList
 	}
 
 	userBalances, err = uuc.ubRepo.GetUserBalanceByUserIds(ctx, userIds...)
-	if nil != err {
-		return res, nil
-	}
-
-	userBalancesLock, err = uuc.ubRepo.GetUserBalanceLockByUserIds(ctx, userIds...)
 	if nil != err {
 		return res, nil
 	}
@@ -605,9 +599,6 @@ func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserList
 		if _, ok := userBalances[v.ID]; !ok {
 			continue
 		}
-		if _, ok := userBalancesLock[v.ID]; !ok {
-			continue
-		}
 		if _, ok := userInfos[v.ID]; !ok {
 			continue
 		}
@@ -618,11 +609,8 @@ func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserList
 			Address:          v.Address,
 			BalanceUsdt:      fmt.Sprintf("%.2f", float64(userBalances[v.ID].BalanceUsdt)/float64(10000000000)),
 			BalanceDhb:       fmt.Sprintf("%.2f", float64(userBalances[v.ID].BalanceDhb)/float64(10000000000)),
-			BalanceUsdtLock:  fmt.Sprintf("%.2f", float64(tmpCurrentMaxSubCurrent)/float64(10000000000)),
-			BalanceDhbLock:   fmt.Sprintf("%.2f", float64(userBalancesLock[v.ID].BalanceDhb)/float64(10000000000)),
 			Vip:              userInfos[v.ID].Vip,
 			HistoryRecommend: userInfos[v.ID].HistoryRecommend,
-			TeamCsdBalance:   fmt.Sprintf("%.2f", float64(userInfos[v.ID].TeamCsdBalance)/float64(10000000000)),
 		})
 	}
 
@@ -760,6 +748,72 @@ func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLoca
 	}
 
 	locations, err, count = uuc.locationRepo.GetLocations(ctx, &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 10,
+	}, userId)
+	if nil != err {
+		return res, nil
+	}
+	res.Count = count
+
+	userIdsMap = make(map[int64]int64, 0)
+	for _, vLocations := range locations {
+		userIdsMap[vLocations.UserId] = vLocations.UserId
+	}
+	for _, v := range userIdsMap {
+		userIds = append(userIds, v)
+	}
+
+	users, err = uuc.repo.GetUserByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	for _, v := range locations {
+		if _, ok := users[v.UserId]; !ok {
+			continue
+		}
+
+		res.Locations = append(res.Locations, &v1.AdminLocationListReply_LocationList{
+			CreatedAt:  v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+			Address:    users[v.UserId].Address,
+			Status:     v.Status,
+			Num:        v.Num,
+			Current:    fmt.Sprintf("%.2f", float64(v.Current)/float64(10000000000)),
+			CurrentMax: fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)),
+		})
+	}
+
+	return res, nil
+
+}
+
+func (uuc *UserUseCase) AdminLocationListNew(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
+	var (
+		locations  []*LocationNew
+		userSearch *User
+		userId     int64
+		userIds    []int64
+		userIdsMap map[int64]int64
+		users      map[int64]*User
+		count      int64
+		err        error
+	)
+
+	res := &v1.AdminLocationListReply{
+		Locations: make([]*v1.AdminLocationListReply_LocationList, 0),
+	}
+
+	// 地址查询
+	if "" != req.Address {
+		userSearch, err = uuc.repo.GetUserByAddress(ctx, req.Address)
+		if nil != err {
+			return res, nil
+		}
+		userId = userSearch.ID
+	}
+
+	locations, err, count = uuc.locationRepo.GetLocations2(ctx, &Pagination{
 		PageNum:  int(req.Page),
 		PageSize: 10,
 	}, userId)
@@ -2457,7 +2511,7 @@ func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1
 	if v1Count > 0 {
 		amountV1 = amount * v1r / 100 / v1Count
 	}
-	
+
 	if v2Count > 0 {
 		amountV2 = amount * v2r / 100 / v2Count
 	}

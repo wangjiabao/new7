@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.7.1
 // - protoc             v3.21.7
-// source: api/app.proto
+// source: app/app/api/app.proto
 
 package api
 
@@ -36,6 +36,7 @@ const OperationAppAdminList = "/api.App/AdminList"
 const OperationAppAdminLocationAllList = "/api.App/AdminLocationAllList"
 const OperationAppAdminLocationInsert = "/api.App/AdminLocationInsert"
 const OperationAppAdminLocationList = "/api.App/AdminLocationList"
+const OperationAppAdminLocationListNew = "/api.App/AdminLocationListNew"
 const OperationAppAdminLogin = "/api.App/AdminLogin"
 const OperationAppAdminMonthRecommend = "/api.App/AdminMonthRecommend"
 const OperationAppAdminRecordList = "/api.App/AdminRecordList"
@@ -93,6 +94,7 @@ type AppHTTPServer interface {
 	AdminLocationAllList(context.Context, *AdminLocationAllListRequest) (*AdminLocationAllListReply, error)
 	AdminLocationInsert(context.Context, *AdminLocationInsertRequest) (*AdminLocationInsertReply, error)
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
+	AdminLocationListNew(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
 	AdminLogin(context.Context, *AdminLoginRequest) (*AdminLoginReply, error)
 	AdminMonthRecommend(context.Context, *AdminMonthRecommendRequest) (*AdminMonthRecommendReply, error)
 	AdminRecordList(context.Context, *RecordListRequest) (*RecordListReply, error)
@@ -155,6 +157,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/admin_dhb/check_admin_user_area", _App_CheckAdminUserArea0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/check_and_insert_locations_recommend_user", _App_CheckAndInsertLocationsRecommendUser0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/location_list", _App_AdminLocationList0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/location_list_2", _App_AdminLocationListNew0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/record_list", _App_AdminRecordList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/location_all_list", _App_AdminLocationAllList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/withdraw_list", _App_AdminWithdrawList0_HTTP_Handler(srv))
@@ -565,6 +568,25 @@ func _App_AdminLocationList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Conte
 		http.SetOperation(ctx, OperationAppAdminLocationList)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.AdminLocationList(ctx, req.(*AdminLocationListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminLocationListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_AdminLocationListNew0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminLocationListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminLocationListNew)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminLocationListNew(ctx, req.(*AdminLocationListRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1300,6 +1322,7 @@ type AppHTTPClient interface {
 	AdminLocationAllList(ctx context.Context, req *AdminLocationAllListRequest, opts ...http.CallOption) (rsp *AdminLocationAllListReply, err error)
 	AdminLocationInsert(ctx context.Context, req *AdminLocationInsertRequest, opts ...http.CallOption) (rsp *AdminLocationInsertReply, err error)
 	AdminLocationList(ctx context.Context, req *AdminLocationListRequest, opts ...http.CallOption) (rsp *AdminLocationListReply, err error)
+	AdminLocationListNew(ctx context.Context, req *AdminLocationListRequest, opts ...http.CallOption) (rsp *AdminLocationListReply, err error)
 	AdminLogin(ctx context.Context, req *AdminLoginRequest, opts ...http.CallOption) (rsp *AdminLoginReply, err error)
 	AdminMonthRecommend(ctx context.Context, req *AdminMonthRecommendRequest, opts ...http.CallOption) (rsp *AdminMonthRecommendReply, err error)
 	AdminRecordList(ctx context.Context, req *RecordListRequest, opts ...http.CallOption) (rsp *RecordListReply, err error)
@@ -1561,6 +1584,19 @@ func (c *AppHTTPClientImpl) AdminLocationList(ctx context.Context, in *AdminLoca
 	pattern := "/api/admin_dhb/location_list"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppAdminLocationList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminLocationListNew(ctx context.Context, in *AdminLocationListRequest, opts ...http.CallOption) (*AdminLocationListReply, error) {
+	var out AdminLocationListReply
+	pattern := "/api/admin_dhb/location_list_2"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminLocationListNew))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

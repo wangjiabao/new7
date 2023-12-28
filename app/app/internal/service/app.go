@@ -863,6 +863,10 @@ func (a *AppService) AdminLocationList(ctx context.Context, req *v1.AdminLocatio
 	return a.uuc.AdminLocationList(ctx, req)
 }
 
+func (a *AppService) AdminLocationListNew(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
+	return a.uuc.AdminLocationListNew(ctx, req)
+}
+
 func (a *AppService) AdminRecordList(ctx context.Context, req *v1.RecordListRequest) (*v1.RecordListReply, error) {
 	return a.uuc.AdminRecordList(ctx, req)
 }

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.7
-// source: api/app.proto
+// source: app/app/api/app.proto
 
 package api
 
@@ -39,6 +39,7 @@ const (
 	App_CheckAdminUserArea_FullMethodName                   = "/api.App/CheckAdminUserArea"
 	App_CheckAndInsertLocationsRecommendUser_FullMethodName = "/api.App/CheckAndInsertLocationsRecommendUser"
 	App_AdminLocationList_FullMethodName                    = "/api.App/AdminLocationList"
+	App_AdminLocationListNew_FullMethodName                 = "/api.App/AdminLocationListNew"
 	App_AdminRecordList_FullMethodName                      = "/api.App/AdminRecordList"
 	App_AdminLocationAllList_FullMethodName                 = "/api.App/AdminLocationAllList"
 	App_AdminWithdrawList_FullMethodName                    = "/api.App/AdminWithdrawList"
@@ -100,6 +101,7 @@ type AppClient interface {
 	CheckAdminUserArea(ctx context.Context, in *CheckAdminUserAreaRequest, opts ...grpc.CallOption) (*CheckAdminUserAreaReply, error)
 	CheckAndInsertLocationsRecommendUser(ctx context.Context, in *CheckAndInsertLocationsRecommendUserRequest, opts ...grpc.CallOption) (*CheckAndInsertLocationsRecommendUserReply, error)
 	AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error)
+	AdminLocationListNew(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error)
 	AdminRecordList(ctx context.Context, in *RecordListRequest, opts ...grpc.CallOption) (*RecordListReply, error)
 	AdminLocationAllList(ctx context.Context, in *AdminLocationAllListRequest, opts ...grpc.CallOption) (*AdminLocationAllListReply, error)
 	AdminWithdrawList(ctx context.Context, in *AdminWithdrawListRequest, opts ...grpc.CallOption) (*AdminWithdrawListReply, error)
@@ -319,6 +321,15 @@ func (c *appClient) CheckAndInsertLocationsRecommendUser(ctx context.Context, in
 func (c *appClient) AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error) {
 	out := new(AdminLocationListReply)
 	err := c.cc.Invoke(ctx, App_AdminLocationList_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminLocationListNew(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error) {
+	out := new(AdminLocationListReply)
+	err := c.cc.Invoke(ctx, App_AdminLocationListNew_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -664,6 +675,7 @@ type AppServer interface {
 	CheckAdminUserArea(context.Context, *CheckAdminUserAreaRequest) (*CheckAdminUserAreaReply, error)
 	CheckAndInsertLocationsRecommendUser(context.Context, *CheckAndInsertLocationsRecommendUserRequest) (*CheckAndInsertLocationsRecommendUserReply, error)
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
+	AdminLocationListNew(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
 	AdminRecordList(context.Context, *RecordListRequest) (*RecordListReply, error)
 	AdminLocationAllList(context.Context, *AdminLocationAllListRequest) (*AdminLocationAllListReply, error)
 	AdminWithdrawList(context.Context, *AdminWithdrawListRequest) (*AdminWithdrawListReply, error)
@@ -765,6 +777,9 @@ func (UnimplementedAppServer) CheckAndInsertLocationsRecommendUser(context.Conte
 }
 func (UnimplementedAppServer) AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminLocationList not implemented")
+}
+func (UnimplementedAppServer) AdminLocationListNew(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminLocationListNew not implemented")
 }
 func (UnimplementedAppServer) AdminRecordList(context.Context, *RecordListRequest) (*RecordListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminRecordList not implemented")
@@ -1240,6 +1255,24 @@ func _App_AdminLocationList_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).AdminLocationList(ctx, req.(*AdminLocationListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminLocationListNew_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminLocationListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminLocationListNew(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: App_AdminLocationListNew_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminLocationListNew(ctx, req.(*AdminLocationListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1962,6 +1995,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _App_AdminLocationList_Handler,
 		},
 		{
+			MethodName: "AdminLocationListNew",
+			Handler:    _App_AdminLocationListNew_Handler,
+		},
+		{
 			MethodName: "AdminRecordList",
 			Handler:    _App_AdminRecordList_Handler,
 		},
@@ -2103,5 +2140,5 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/app.proto",
+	Metadata: "app/app/api/app.proto",
 }

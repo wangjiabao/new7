@@ -3297,6 +3297,8 @@ func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context, b *biz.Pagination
 		instance = instance.Where("reason=?", reason)
 	}
 
+	instance = instance.Where("user_id<?", 999999999)
+
 	instance = instance.Count(&count)
 	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Order("id desc").Find(&rewards).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

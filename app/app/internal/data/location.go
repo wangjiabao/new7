@@ -972,6 +972,42 @@ func (lr *LocationRepo) GetLocations(ctx context.Context, b *biz.Pagination, use
 	return res, nil, count
 }
 
+// GetLocations2 .
+func (lr *LocationRepo) GetLocations2(ctx context.Context, b *biz.Pagination, userId int64) ([]*biz.LocationNew, error, int64) {
+	var (
+		locations []*Location
+		count     int64
+	)
+	instance := lr.data.db.Table("location_new_2").Where("status=?", "running")
+
+	if 0 < userId {
+		instance = instance.Where("user_id=?", userId)
+	}
+
+	instance = instance.Count(&count)
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Order("id desc").Find(&locations).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found"), 0
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error()), 0
+	}
+
+	res := make([]*biz.LocationNew, 0)
+	for _, location := range locations {
+		res = append(res, &biz.LocationNew{
+			ID:         location.ID,
+			UserId:     location.UserId,
+			Status:     location.Status,
+			Current:    location.Current,
+			CurrentMax: location.CurrentMax,
+			CreatedAt:  location.CreatedAt,
+		})
+	}
+
+	return res, nil, count
+}
+
 // GetUserBalanceRecords .
 func (lr *LocationRepo) GetUserBalanceRecords(ctx context.Context, b *biz.Pagination, userId int64, coinType string) ([]*biz.UserBalanceRecord, error, int64) {
 	var (

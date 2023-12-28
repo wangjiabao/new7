@@ -139,6 +139,12 @@ service App {
 		};
 	};
 
+	rpc AdminLocationListNew (AdminLocationListRequest) returns (AdminLocationListReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/location_list_2"
+		};
+	};
+
 	rpc AdminRecordList (RecordListRequest) returns (RecordListReply) {
 		option (google.api.http) = {
 			get: "/api/admin_dhb/record_list"
@@ -510,12 +516,12 @@ message AdminRewardListRequest {
 message AdminRewardListReply {
 	repeated List rewards = 1;
 	message List {
-		string created_at = 1;
-		string amount = 2;
+		string created_at = 1; // 时间
+		string amount = 2; // 分红数量
 		string amountB = 3;
 		string type = 4;
-		string address = 5;
-		string reason = 6;
+		string address = 5; // 地址
+		string reason = 6; // 理由：1 recommend_token （vip直推代币） 2 reward_withdraw vipusdt每日分红 3 recommend 直推 4 location 代数奖励
 	}
 	 int64 count = 2;
 }
@@ -572,13 +578,13 @@ message AdminUserListReply { // 用户信息
 		int64 user_id = 8;
 		string created_at = 1; // 创建时间
 		string address = 2; // 地址
-		string balanceUsdt = 3; // 可提CSd
-		string balanceDhb = 4; // 可提Hbs
-		string balanceUsdtLock = 7; // 未释放CSd
-		string balanceDhbLock = 9; // 未释放Hbs
+		string balanceUsdt = 3; // 可提usdt
+		string balanceDhb = 4; //
+		string balanceUsdtLock = 7;
+		string balanceDhbLock = 9;
 		int64 vip = 5; // 等级
 		int64 historyRecommend = 6; // 直推人数
-		string TeamCsdBalance = 10; // 团队可提csd
+		string TeamCsdBalance = 10;
 	}
 
 	int64 count = 2;
@@ -612,10 +618,11 @@ message AdminLocationListReply { // 投资列表
 	message  LocationList {
 		string created_at = 1; // 时间
 		string address = 2; // 地址
-		string status = 5;
+		string status = 5; // 状态 running运行，stop停止
+		int64 num = 9; // 代数 locationnew那个接口不用展示这个字段
 		int64 currentLevel = 6;
-		string current = 7; // 已解锁金额
-		string currentMax = 8; // 待解锁金额
+		string current = 7; // 当前收益
+		string currentMax = 8; // 最大收益
 	}
 	int64 count = 2;
 }
@@ -647,13 +654,13 @@ message AdminWithdrawListRequest {
 message AdminWithdrawListReply {
 	repeated List withdraw = 1;
 	message List {
-		string address = 5;
+		string address = 5; // 地址
 		int64  id = 7;
-		string created_at = 1;
-		string amount = 2;
-		string relAmount = 6;
-		string type = 3; // 类型usdt是csd,dhb是hbs
-		string status=4;
+		string created_at = 1; // 时间
+		string amount = 2; // 到账金额
+		string relAmount = 6; // 提现金额
+		string type = 3; // 类型usdt是模块1提现，usdt_2是模块2提现
+		string status=4; // success成功，doing正在处理
 	}
 	int64 count = 2;
 }
@@ -773,8 +780,8 @@ message AdminConfigReply {
 	repeated List config = 1;
 	message List {
 		int64 id = 1;
-		string name = 3;
-		string value = 2;
+		string name = 3; // 名称
+		string value = 2; // 值
 	}
 	int64 count = 2;
 }
