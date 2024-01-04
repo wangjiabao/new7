@@ -22,6 +22,7 @@ type Location struct {
 	StopDate      time.Time `gorm:"type:datetime;not null"`
 	CreatedAt     time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt     time.Time `gorm:"type:datetime;not null"`
+	Num           int64     `gorm:"type:int;not null"`
 }
 type LocationNew struct {
 	ID                int64     `gorm:"primarykey;type:int"`
@@ -966,6 +967,7 @@ func (lr *LocationRepo) GetLocations(ctx context.Context, b *biz.Pagination, use
 			Current:    location.Current,
 			CurrentMax: location.CurrentMax,
 			CreatedAt:  location.CreatedAt,
+			Num:        location.Num,
 		})
 	}
 
