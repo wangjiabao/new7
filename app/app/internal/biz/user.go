@@ -2543,8 +2543,6 @@ func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1
 		amountV3 = amount * v3r / 100 / v3Count
 	}
 
-	fmt.Println(amount, amountV1, amountV2, amountV3, v1Count, v2Count, v3Count)
-
 	if nil != userInfos {
 		for _, v := range userInfos {
 			var tmpAmount int64
@@ -2559,16 +2557,15 @@ func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1
 			if 1 == v.Vip {
 				tmpAmount = amountV1
 			}
-			fmt.Println(tmpAmount, v.UserId)
-			//if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error {
-			//	_, err = uuc.ubRepo.NormalReward4(ctx, v.UserId, tmpAmount, 0)
-			//	if nil != err {
-			//		return err
-			//	}
-			//	return nil
-			//}); nil != err {
-			//	continue
-			//}
+			if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error {
+				_, err = uuc.ubRepo.NormalReward4(ctx, v.UserId, tmpAmount, 0)
+				if nil != err {
+					return err
+				}
+				return nil
+			}); nil != err {
+				continue
+			}
 		}
 	}
 
