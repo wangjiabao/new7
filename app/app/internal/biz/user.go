@@ -1182,16 +1182,12 @@ func (uuc *UserUseCase) AdminVipUpdate(ctx context.Context, req *v1.AdminVipUpda
 
 	res := &v1.AdminVipUpdateReply{}
 
-	if 5 == req.SendBody.Vip {
-		userInfo.Vip = 6
-	} else if 4 == req.SendBody.Vip {
-		userInfo.Vip = 5
-	} else if 3 == req.SendBody.Vip {
-		userInfo.Vip = 4
-	} else if 2 == req.SendBody.Vip {
+	if 3 == req.SendBody.Vip {
 		userInfo.Vip = 3
-	} else if 1 == req.SendBody.Vip {
+	} else if 2 == req.SendBody.Vip {
 		userInfo.Vip = 2
+	} else if 1 == req.SendBody.Vip {
+		userInfo.Vip = 1
 	}
 
 	_, err = uuc.uiRepo.UpdateUserInfo2(ctx, userInfo) // 推荐人信息修改
