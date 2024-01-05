@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"dhb/app/app/internal/biz"
-	"fmt"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
@@ -3712,12 +3711,12 @@ func (ub UserBalanceRepo) GetSystemWithdrawUsdtFeeTotalToday(ctx context.Context
 	now := time.Now().UTC()
 	var startDate time.Time
 	var endDate time.Time
-	startDate = now.AddDate(0, 0, -2)
-	endDate = now.AddDate(0, 0, -1)
+	startDate = now.AddDate(0, 0, -1)
+	endDate = now
 
 	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
 	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
-	fmt.Println(todayStart, todayEnd)
+
 	if err := ub.data.db.Table("reward").
 		Where("user_id=?", 999999999).
 		Where("type=?", "withdraw").
