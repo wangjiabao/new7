@@ -197,6 +197,7 @@ type UserBalanceRepo interface {
 	NewNormalRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64, tmpRecommendUserIdsInt []int64) (int64, error)
 	NormalRecommendReward2(ctx context.Context, userId int64, rewardAmount int64, locationId int64, type1 string, reason string) (int64, error)
 	NormalReward3(ctx context.Context, userId int64, rewardAmount int64, rewardAmount2 int64, locationId int64, status string, status2 string) (int64, error)
+	NormalReward4(ctx context.Context, userId int64, rewardAmount int64, locationId int64) (int64, error)
 	NormalRecommendTopReward(ctx context.Context, userId int64, amount int64, locationId int64, reasonId int64, status string) (int64, error)
 	NormalWithdrawRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64, status string) (int64, error)
 	NormalWithdrawRecommendTopReward(ctx context.Context, userId int64, amount int64, locationId int64, reasonId int64, status string) (int64, error)
@@ -302,6 +303,7 @@ type UserInfoRepo interface {
 	UpdateUserInfo2(ctx context.Context, u *UserInfo) (*UserInfo, error)
 	UpdateUserInfoVip(ctx context.Context, userId, vip int64) (*UserInfo, error)
 	GetUserInfoByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserInfo, error)
+	GetUserInfosByVipAndLockVip(ctx context.Context) ([]*UserInfo, error)
 }
 
 type UserRepo interface {
@@ -1188,6 +1190,8 @@ func (uuc *UserUseCase) AdminVipUpdate(ctx context.Context, req *v1.AdminVipUpda
 		userInfo.Vip = 2
 	} else if 1 == req.SendBody.Vip {
 		userInfo.Vip = 1
+	} else if -1 == req.SendBody.Vip {
+		userInfo.Vip = 0
 	}
 
 	_, err = uuc.uiRepo.UpdateUserInfo2(ctx, userInfo) // 推荐人信息修改
@@ -2439,6 +2443,7 @@ func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1
 		v2Count          int64
 		v3Count          int64
 		err              error
+		userInfos        []*UserInfo
 	)
 
 	configs, _ = uuc.configRepo.GetConfigByKeys(ctx,
@@ -2460,6 +2465,28 @@ func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1
 	amount, err = uuc.ubRepo.GetSystemWithdrawUsdtFeeTotalToday(ctx)
 	if nil != err {
 		return &v1.AdminDailyLocationRewardNewReply{}, nil
+	}
+
+	// 获取手动设置的
+	userInfos, err = uuc.uiRepo.GetUserInfosByVipAndLockVip(ctx)
+	if nil != err {
+		return &v1.AdminDailyLocationRewardNewReply{}, nil
+	}
+
+	if nil != userInfos {
+		for _, v := range userInfos {
+			if 3 == v.Vip {
+				v3Count += 1
+			}
+
+			if 2 == v.Vip {
+				v2Count += 1
+			}
+
+			if 1 == v.Vip {
+				v1Count += 1
+			}
+		}
 	}
 
 	userLocations, err = uuc.locationRepo.GetAllLocationsNew2(ctx)
@@ -2514,6 +2541,35 @@ func (uuc *UserUseCase) AdminDailyLocationRewardNew(ctx context.Context, req *v1
 
 	if v3Count > 0 {
 		amountV3 = amount * v3r / 100 / v3Count
+	}
+
+	fmt.Println(amount, amountV1, amountV2, amountV3, v1Count, v2Count, v3Count)
+
+	if nil != userInfos {
+		for _, v := range userInfos {
+			var tmpAmount int64
+			if 3 == v.Vip {
+				tmpAmount = amountV3
+			}
+
+			if 2 == v.Vip {
+				tmpAmount = amountV2
+			}
+
+			if 1 == v.Vip {
+				tmpAmount = amountV1
+			}
+			fmt.Println(tmpAmount, v.UserId)
+			//if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error {
+			//	_, err = uuc.ubRepo.NormalReward4(ctx, v.UserId, tmpAmount, 0)
+			//	if nil != err {
+			//		return err
+			//	}
+			//	return nil
+			//}); nil != err {
+			//	continue
+			//}
+		}
 	}
 
 	for _, vUserLocations1 := range userLocations1 {

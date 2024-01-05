@@ -758,11 +758,20 @@ func (ui *UserInfoRepo) UpdateUserInfo(ctx context.Context, u *biz.UserInfo) (*b
 
 // UpdateUserInfo2 .
 func (ui *UserInfoRepo) UpdateUserInfo2(ctx context.Context, u *biz.UserInfo) (*biz.UserInfo, error) {
-	var userInfo UserInfo
-	userInfo.Vip = u.Vip
-	userInfo.LockVip = 1
+	var (
+		userInfo UserInfo
+		lockVip  = 1
+		vip      = u.Vip
+	)
 
-	res := ui.data.DB(ctx).Table("user_info").Where("user_id=?", u.UserId).Updates(&userInfo)
+	if -1 == vip {
+		lockVip = 0
+		vip = 0
+	}
+
+	res := ui.data.DB(ctx).Table("user_info").Where("user_id=?", u.UserId).Updates(
+		map[string]interface{}{"vip": vip, "lock_vip": lockVip})
+
 	if res.Error != nil {
 		return nil, errors.New(500, "UPDATE_USER_INFO_ERROR", "用户信息修改失败")
 	}
@@ -2648,6 +2657,47 @@ func (ub *UserBalanceRepo) NormalRecommendReward(ctx context.Context, userId int
 	return userBalanceRecode.ID, nil
 }
 
+// NormalReward4 .
+func (ub *UserBalanceRepo) NormalReward4(ctx context.Context, userId int64, rewardAmount int64, locationId int64) (int64, error) {
+	var err error
+
+	if err = ub.data.DB(ctx).Table("user_balance").
+		Where("user_id=?", userId).
+		Updates(map[string]interface{}{"balance_usdt_new": gorm.Expr("balance_usdt_new + ?", rewardAmount)}).Error; nil != err {
+		return 0, errors.NotFound("user balance err", "user balance not found")
+	}
+
+	var userBalance UserBalance
+	err = ub.data.DB(ctx).Where(&UserBalance{UserId: userId}).Table("user_balance").First(&userBalance).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = userBalance.BalanceUsdtNew
+	userBalanceRecode.UserId = userBalance.UserId
+	userBalanceRecode.Type = "reward_withdraw"
+	userBalanceRecode.Amount = rewardAmount
+	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var reward Reward
+	reward.UserId = userBalance.UserId
+	reward.Amount = rewardAmount
+	reward.BalanceRecordId = userBalanceRecode.ID
+	reward.Type = "reward_withdraw" // 本次分红的行为类型
+	reward.TypeRecordId = locationId
+	reward.Reason = "reward_withdraw" // 给我分红的理由
+	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return userBalanceRecode.ID, nil
+}
+
 // NormalReward3 .
 func (ub *UserBalanceRepo) NormalReward3(ctx context.Context, userId int64, rewardAmount int64, rewardAmount2 int64, locationId int64, status string, status2 string) (int64, error) {
 	var err error
@@ -3884,6 +3934,32 @@ func (ui *UserInfoRepo) GetUserInfoByUserIds(ctx context.Context, userIds ...int
 			HistoryRecommend: userInfo.HistoryRecommend,
 			TeamCsdBalance:   userInfo.TeamCsdBalance,
 		}
+	}
+
+	return res, nil
+}
+
+// GetUserInfosByVipAndLockVip .
+func (ui *UserInfoRepo) GetUserInfosByVipAndLockVip(ctx context.Context) ([]*biz.UserInfo, error) {
+	var userInfos []*UserInfo
+	res := make([]*biz.UserInfo, 0)
+	if err := ui.data.db.Where("vip>=? and lock_vip=?", 1, 1).Table("user_info").Find(&userInfos).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USERINFO_NOT_FOUND", "userinfo not found")
+		}
+
+		return nil, errors.New(500, "USERINFO ERROR", err.Error())
+	}
+
+	for _, userInfo := range userInfos {
+		res = append(res, &biz.UserInfo{
+			ID:               userInfo.ID,
+			UserId:           userInfo.UserId,
+			Vip:              userInfo.Vip,
+			LockVip:          userInfo.LockVip,
+			HistoryRecommend: userInfo.HistoryRecommend,
+			TeamCsdBalance:   userInfo.TeamCsdBalance,
+		})
 	}
 
 	return res, nil
